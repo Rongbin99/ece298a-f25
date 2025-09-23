@@ -12,6 +12,7 @@ You can also include images in this folder and reference them in the markdown. E
 3-channel square wave sound chip with support for amplitude, frequency, and duty cycle updates per channel.
 
 ### Block diagram
+![Block diagram](./block_diagram_v1.png)
 
 ### Register map
 | Register    | Description                  |
