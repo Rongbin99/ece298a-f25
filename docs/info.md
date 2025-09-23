@@ -9,12 +9,28 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+TBD
+
+### Block diagram
 
 ## How to test
 
-Explain how to use your project
+TBD
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Audio Pmmod required: store.tinytapeout.com/products/Audio-Pmod-p716541601
+
+## Pin assignments
+| # | Input                   | Output     | Bidirectional        |
+|---|-------------------------|------------|----------------------|
+| 0 | Register bus address[0] | -          | Register bus data[0] |
+| 1 | Register bus address[1] | -          | Register bus data[1] |
+| 2 | Register bus address[2] | -          | Register bus data[2] |
+| 3 | Register bus address[3] | -          | Register bus data[3] |
+| 4 | Transfer enable         | -          | Register bus data[4] |
+| 5 | Transfer phase*         | -          | Register bus data[5] |
+| 6 | -                       | -          | Register bus data[6] |
+| 7 | -                       | PDM output | Register bus data[7] |
+
+*Transfer phase: 0 if transferring lower/least significant 8 bits of 16 bit register, 1 if transferring higher/most significant 8 bits.  
