@@ -46,7 +46,9 @@ async def test_project(dut):
     # tri-state control
     dut.ui_in.value = 0
     await ClockCycles(dut.clk, 1)
-    assert int(dut.uio_oe.value) == 0x00 # uio_oe should be 0
+    assert int(dut.uio_oe.value) == 0x00 # uio_oe should be 0 (high-Z/input mode)
+    
     dut.ui_in.value = 0b0000_0001 # [0] == 1 => tri_en enabled
     await ClockCycles(dut.clk, 1)
-    assert int(dut.uio_oe.value) == 0xFF # uio_oe should be 1
+    assert int(dut.uio_oe.value) == 0xFF # uio_oe should be 0xFF (output mode)
+    assert int(dut.uio_out.value) == int(dut.uo_out.value) # uio_out should match counter
