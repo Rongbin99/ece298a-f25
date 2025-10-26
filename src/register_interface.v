@@ -1,19 +1,26 @@
+// gate estimate: 350
+
 `default_nettype none
 
-module register_interface (
+module register_interface #(
+    parameter NUM_REGS = 4'b0011
+) (
     input  wire       enable,
     input  wire       phase,
     input  wire [3:0] address,
     input  wire [7:0] reg_value,
     input  wire       clk,
     input  wire       rst_n,
-    output reg [15:0] registers [0:15]
+    output reg [15:0] registers [0:NUM_REGS-1]
 );
 
     wire enable_sync;
     wire phase_sync;
     reg enable_prev;
     reg phase_prev;
+
+    reg [1:0] state;
+    reg [15:0] temp;
 
     sync enable_sync_inst (
         .in (enable),
@@ -29,53 +36,71 @@ module register_interface (
         .out (phase_sync)
     );
 
-    // writing anything to address 0 will update all output registers
-    // (value of address 0 is always 0)
-    assign registers[0] = 16'b0;
-
-    reg [15:0] intermediate_regs [1:15];
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (int i = 1; i < 16; i = i + 1) begin
+            for (int i = 1; i < NUM_REGS; i = i + 1) begin
                 registers[i] <= 16'b0;
-                intermediate_regs[i] <= 16'b0;
             end
             enable_prev <= 1'b0;
             phase_prev <= 1'b0;
+            state <= 1'b0';
+            temp <= 16'b0;
         end else begin
             enable_prev <= enable_sync;
             phase_prev <= phase_sync;
 
             /**
-            ONLY VALID REG WRITE SEQUENCE:
-            phase set to 1, address and value set
-            enable set to 1. on this edge, i_regs[address] MSB set to value
-                if address == 0, regs set to i_regs
-            phase set to 0. on this edge, i_regs[address] LSB set to value
-                if address == 0, do nothing
-            enable set to 0.
+            state 0: default, enabled = 0, phase = x
+                enabled rising & phase = 1: state 1, temp MSB set to value
+                enabled rising & phase = 0: state error
+            state 1: enabled = 1, phase = 1
+                phase falling: state 2, temp LSB set to value
+                enabled falling: state 0 (is an error)
+            state 2: enabled = 1, phase = 0
+                enabled falling: state 0, i_regs[address] set to temp
+                phase rising: state error
+            state 3: error, enabled = 1, phase = x
+                enabled falling: state 0
             */
 
-            if (enable_sync & !enable_prev & phase_sync) {
-                if (address == 4'b0000) begin
-                    // regs set to i_regs
-                    for (int i = 1; i < 16; i = i + 1) begin
-                        registers[i] <= intermediate_regs[i];
+            case (state)
+                2'b00: begin // State 0: default, enabled = 0
+                    if (enable_sync & !enable_prev) begin
+                        if (phase_sync) begin
+                            state <= 2'b01; // Go to state 1
+                            temp[15:8] <= reg_value; // Set MSB
+                        end else begin
+                            state <= 2'b11; // Go to error state
+                        end
                     end
-                end else begin
-                    // i_regs[address] MSB set to value
-                    intermediate_regs[address][15:8] <= reg_value;
                 end
-            }
-
-            if (!phase_sync & phase_prev & enable_sync) {
-                if (address != 4'b0000) begin
-                    // i_regs[address] LSB set to value
-                    intermediate_regs[address][7:0] <= reg_value;
+                
+                2'b01: begin // State 1: enabled = 1, phase = 1
+                    if (!phase_sync & phase_prev) begin
+                        state <= 2'b10; // Go to state 2
+                        temp[7:0] <= reg_value; // Set LSB
+                    end else if (!enable_sync & enable_prev) begin
+                        state <= 2'b00; // Error: go back to state 0
+                    end
                 end
-            }
+                
+                2'b10: begin // State 2: enabled = 1, phase = 0
+                    if (!enable_sync & enable_prev) begin
+                        state <= 2'b00; // Go back to state 0
+                        if (address < NUM_REGS) begin
+                            registers[address] <= temp; // Write complete 16-bit value
+                        end
+                    end else if (phase_sync & !phase_prev) begin
+                        state <= 2'b11; // Error: go to error state
+                    end
+                end
+                
+                2'b11: begin // State 3: error state
+                    if (!enable_sync & enable_prev) begin
+                        state <= 2'b00; // Go back to state 0
+                    end
+                end
+            endcase
         end
     end
-
 endmodule

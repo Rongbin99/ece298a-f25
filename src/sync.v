@@ -1,3 +1,5 @@
+`default_nettype none
+
 module sync (
     input  wire in,
     input  wire clk,

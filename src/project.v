@@ -25,3 +25,9 @@ module tt_um_example (
   wire _unused = &{ena, clk, rst_n, 1'b0};
 
 endmodule
+
+// idea: global 8-bit signal constantly counting up on falling clk edges
+// share between pwm, tri, sine
+// they all need to know when samples start and end relative to clk
+// have an agreement on when each one updates (eg. tri, sine when signal = 0, pwm when signal = 1)
+// saves 2 x 8-bit counter number of bits (like 100)
