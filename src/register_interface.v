@@ -1,9 +1,9 @@
-// gate estimate: 350
+// gate estimate: 250 ?
 
 `default_nettype none
 
 module register_interface #(
-    parameter NUM_REGS = 4'b0011
+    parameter NUM_REGS = 4'b0010
 ) (
     input  wire       enable,
     input  wire       phase,
