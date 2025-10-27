@@ -5,12 +5,12 @@ project:
   discord:      "rongbin99, evan.li"                                          # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
   description:  "Multi-channel Sound Wave Generator"                          # One line description of what your project does
   language:     "Verilog"                                                     # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0                                                             # Clock frequency in Hz (or 0 if not applicable)
+  clock_hz:     7208960                                                       # Clock frequency in Hz (or 0 if not applicable)
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
+  # Your top module name must start with "tt_um_".
   top_module:  "tt_um_audio_chip"
 
   # List your project's source files here.
@@ -18,42 +18,44 @@ project:
   # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
   source_files:
     - "audio_chip.v"
-    - "audio_sine_wave_generator.v"
-    - "audio_square_wave_generator.v"
-    - "audio_controller.v"
+    - "phase_counter.v"
+    - "sine.v"
+    - "sync.v"
+    - "pwm.v"
+    - "register_interface.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
   # Inputs
-  ui[0]: "in0"
-  ui[1]: "in1"
-  ui[2]: "in2"
-  ui[3]: "in3"
-  ui[4]: "in4"
-  ui[5]: "in5"
-  ui[6]: "in6"
-  ui[7]: "in7"
+  ui[0]: "ADDR0"
+  ui[1]: "ADDR1"
+  ui[2]: "ADDR2"
+  ui[3]: "ADDR3"
+  ui[4]: "WRITE_PHASE"
+  ui[5]: "WRITE_EN"
+  ui[6]: ""
+  ui[7]: ""
 
   # Outputs
-  uo[0]: "o0"
-  uo[1]: "o1"
-  uo[2]: "o2"
-  uo[3]: "o3"
-  uo[4]: "o4"
-  uo[5]: "o5"
-  uo[6]: "o6"
-  uo[7]: "o7"
+  uo[0]: ""
+  uo[1]: ""
+  uo[2]: ""
+  uo[3]: ""
+  uo[4]: ""
+  uo[5]: ""
+  uo[6]: ""
+  uo[7]: "PWM_OUT"
 
   # Bidirectional pins
-  uio[0]: "io0"
-  uio[1]: "io1"
-  uio[2]: "io2"
-  uio[3]: "io3"
-  uio[4]: "io4"
-  uio[5]: "io5"
-  uio[6]: "io6"
-  uio[7]: "io7"
+  uio[0]: "REG_IN0"
+  uio[1]: "REG_IN1"
+  uio[2]: "REG_IN2"
+  uio[3]: "REG_IN3"
+  uio[4]: "REG_IN4"
+  uio[5]: "REG_IN5"
+  uio[6]: "REG_IN6"
+  uio[7]: "REG_IN7"
 
 # Do not change!
 yaml_version: 6
