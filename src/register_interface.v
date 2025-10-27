@@ -3,16 +3,25 @@
 `default_nettype none
 
 module register_interface #(
-    parameter NUM_REGS = 4'b0010
+    parameter NUM_REGS = 2
 ) (
-    input  wire       enable,
-    input  wire       phase,
-    input  wire [3:0] address,
-    input  wire [7:0] reg_value,
-    input  wire       clk,
-    input  wire       rst_n,
-    output reg [15:0] registers [0:NUM_REGS-1]
+    input  wire                   enable,
+    input  wire                   phase,
+    input  wire [3:0]             address,
+    input  wire [7:0]             reg_value,
+    input  wire                   clk,
+    input  wire                   rst_n,
+    output wire [NUM_REGS*16-1:0] registers_flat
 );
+    reg [15:0] registers [NUM_REGS-1:0];
+    
+    // flatten registers 2d array to output
+    genvar g;
+    generate
+        for (g = 0; g < NUM_REGS; g = g + 1) begin : flatten_regs
+            assign registers_flat[(g+1)*16-1:g*16] = registers[g];
+        end
+    endgenerate
 
     wire enable_sync;
     wire phase_sync;
@@ -43,7 +52,7 @@ module register_interface #(
             end
             enable_prev <= 1'b0;
             phase_prev <= 1'b0;
-            state <= 1'b0';
+            state <= 2'b0;
             temp <= 16'b0;
         end else begin
             enable_prev <= enable_sync;
@@ -88,7 +97,7 @@ module register_interface #(
                     if (!enable_sync & enable_prev) begin
                         state <= 2'b00; // Go back to state 0
                         if (address < NUM_REGS) begin
-                            registers[address] <= temp; // Write complete 16-bit value
+                            registers[address[0]] <= temp; // Write complete 16-bit value
                         end
                     end else if (phase_sync & !phase_prev) begin
                         state <= 2'b11; // Error: go to error state

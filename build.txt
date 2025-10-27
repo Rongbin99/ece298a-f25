@@ -1,0 +1,36 @@
+notes to self
+https://tinytapeout.com/guides/local-hardening/
+https://tinytapeout.com/hdl/testing/
+
+source ../ttsetup/venv/bin/activate
+export PDK=sky130A
+export LIBRELANE_TAG=2.4.2
+export PDK_ROOT=~/Desktop/uni/study/2B/298a/ttsetup/pdk // dont think i need this
+
+./tt/tt_tool.py --create-user-config    // if changing config eg. num tiles
+./tt/tt_tool.py --harden > out.txt
+./tt/tt_tool.py --print-warnings
+
+test:
+cd test
+
+rtl test:
+make -B
+
+view waveforms:
+gtkwave tb.vcd
+
+gate level test:
+TOP_MODULE=$(cd .. && ./tt/tt_tool.py --print-top-module)
+cp ../runs/wokwi/final/pnl/$TOP_MODULE.pnl.v gate_level_netlist.v
+make -B GATES=yes
+
+viewing:
+./tt/tt_tool.py --open-in-openroad
+or
+./tt/tt_tool.py --open-in-klayout
+or
+./tt/tt_tool.py --create-png
+
+how much does this do and what doesn't it include?
+source ../oss-cad-suite/environment

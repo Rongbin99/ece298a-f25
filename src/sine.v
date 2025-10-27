@@ -24,8 +24,6 @@ module sine #(
     input  wire clk,
     output reg [6:0] out
 );
-    localparam CORDIC_ITER = 8;
-
     reg [7:0] t;
     reg [6:0] x, y;
 
@@ -44,7 +42,7 @@ module sine #(
     reg [ACC_BITS-1:0] accumulator;
 
     // Scale factor pre-applied to x (approx K = 0.607, product of cosines)
-    localparam [6:0] X_INIT = 8'd39; // 0.607 * 64 ~= 39
+    localparam [6:0] X_INIT = 7'd39; // 0.607 * 64 ~= 39
     
     // s_p = 255: start sine calculation on t=accumulator
     // s_p = 0-7: sine calculation
@@ -71,16 +69,16 @@ module sine #(
                     // Rotate positive
                     x <= x - (y >> subsample_phase);
                     y <= y + (x >> subsample_phase);
-                    t <= t - atan_table[subsample_phase];
+                    t <= t - atan_table[subsample_phase[2:0]];
                 end else begin
                     // Rotate negative
                     x <= x + (y >> subsample_phase);
                     y <= y - (x >> subsample_phase);
-                    t <= t + atan_table[subsample_phase];
+                    t <= t + atan_table[subsample_phase[2:0]];
                 end
             end else if (subsample_phase == 7) begin
                 out <= y + 7'd64;
-                accumulator <= accumulator + freq_increment;
+                accumulator <= accumulator + {2'b0,freq_increment};
             end
         end
     end

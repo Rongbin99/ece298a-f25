@@ -6,9 +6,9 @@
 module pwm (
     input  wire [7:0] subsample_phase,
     input  wire [7:0] bitstream,
-    output reg        pwm_out,
     input  wire       clk,      // clock
-    input  wire       rst_n     // reset_n - low to reset
+    input  wire       rst_n,    // reset_n - low to reset
+    output reg        pwm_out
 );
     reg [7:0] current_sample = 8'b0;
 
