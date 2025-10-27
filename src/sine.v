@@ -10,6 +10,8 @@
 //                              next 8 bits are inputted to CORDIC (sometimes inverted)
 //                              last 5 bits are used to improve output resolution
 // output: 7-bit
+// if gate-limited, change to 6-bit bit shifted left. Based on testing,
+// audio quality suffers little for notes between A3 (220Hz) and A6 (1760Hz) with a sample rate of 28160
 
 `default_nettype none
 
@@ -17,7 +19,7 @@ module sine #(
     parameter ACC_BITS = 14
 ) (
     input  wire [7:0] subsample_phase,
-    input  wire [ACC_BITS-2:0] freq_increment, // from freq register
+    input  wire [ACC_BITS-3:0] freq_increment, // from freq register
     input  wire rst_n,
     input  wire clk,
     output reg [6:0] out
@@ -28,7 +30,7 @@ module sine #(
     reg [6:0] x, y;
 
     // cordic atan table (in 8-bit 0-255)
-    wire [7:0] atan_table [0:7];
+    wire [7:0] atan_table [0:6];
     assign atan_table[0] = 8'd64;   // 45
     assign atan_table[1] = 8'd38;   // atan(2^-1)
     assign atan_table[2] = 8'd20;   // atan(2^-2)
