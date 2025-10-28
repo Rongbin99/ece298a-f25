@@ -1,17 +1,22 @@
+/*
+ * Copyright (c) 2025 Rongbin Gu, Evan Li
+ * SPDX-License-Identifier: MIT
+ */
+
 // gate estimate: 250 ?
 
 `default_nettype none
 
 module register_interface #(
-    parameter NUM_REGS = 2
+    parameter NUM_REGS = 2 // number of registers
 ) (
-    input  wire                   enable,
-    input  wire                   phase,
-    input  wire [3:0]             address,
-    input  wire [7:0]             reg_value,
-    input  wire                   clk,
-    input  wire                   rst_n,
-    output wire [NUM_REGS*16-1:0] registers_flat
+    input  wire                   enable,           // enable input
+    input  wire                   phase,            // phase input
+    input  wire [3:0]             address,          // address input
+    input  wire [7:0]             reg_value,        // register value input
+    input  wire                   clk,              // clock
+    input  wire                   rst_n,            // reset_n - low to reset
+    output wire [NUM_REGS*16-1:0] registers_flat    // flattened registers output
 );
     reg [15:0] registers [NUM_REGS-1:0];
     
@@ -112,4 +117,5 @@ module register_interface #(
             endcase
         end
     end
+
 endmodule

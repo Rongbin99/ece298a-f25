@@ -1,13 +1,20 @@
+/*
+ * Copyright (c) 2025 Rongbin Gu, Evan Li
+ * SPDX-License-Identifier: MIT
+ */
+
+// synchronizes the input by using a FF chain to avoid metastability
+
 `default_nettype none
 
 module sync (
-    input  wire in,
-    input  wire clk,
-    input  wire rst_n,
-    output reg  out
+    input  wire in,         // input to sync
+    input  wire clk,        // clock
+    input  wire rst_n,      // reset_n - low to reset
+    output reg  out         // output of sync (1 bit)
 );
 
-    reg sync1;
+    reg sync1; 
     
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
