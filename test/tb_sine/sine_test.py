@@ -25,7 +25,7 @@ async def test_project(dut):
     dut._log.info("Start")
 
     # approx 7208960 Hz
-    clock = Clock(dut.clk, 139, units="ns")
+    clock = Clock(dut.clk, 139, unit="ns")
     cocotb.start_soon(clock.start())
 
     # Reset
@@ -46,5 +46,5 @@ async def test_project(dut):
     await inc_subsample_phase(dut, 254-7)
 
     dut._log.info("Starting 1760 Hz tone")
-    dut.freq_increment.value = calculate_step(1760)
-    await inc_subsample_phase(dut, 256*50) # about 2 periods
+    dut.freq_increment.value = calculate_step(400)
+    await inc_subsample_phase(dut, 256*300)
