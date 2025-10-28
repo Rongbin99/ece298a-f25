@@ -10,8 +10,8 @@ project:
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
-  # Your top module name must start with "tt_um_".
-  top_module:  "tt_um_rongbin99_audio_chip"
+  # Your top module name must start with "tt_um_". Make it unique by including your github username:
+  top_module:  "tt_um_rongbin99_happyredmapleleaf_audio_chip"
 
   # List your project's source files here.
   # Source files must be in ./src and you must list each source file separately, one per line.
@@ -19,10 +19,11 @@ project:
   source_files:
     - "audio_chip.v"
     - "phase_counter.v"
-    - "sine.v"
-    - "sync.v"
     - "pwm.v"
     - "register_interface.v"
+    - "sine.v"
+    - "sync.v"
+    - "triangle.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
