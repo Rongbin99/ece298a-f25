@@ -55,6 +55,7 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
 
     triangle triangle_gen (
         subsample_phase,
+        registers[0][11:0],
         clk,
         rst_n,
         bitstream[6:0]

@@ -14,12 +14,14 @@ module tb ();
   reg clk;
   reg rst_n;
   reg [7:0] subsample_phase;
+  reg [11:0] freq_increment;
   wire [6:0] out;
 
   triangle triangle_inst (
       subsample_phase,
-      clk,
+      freq_increment,
       rst_n,
+      clk,
       out
   );  
   
