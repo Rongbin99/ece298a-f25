@@ -12,6 +12,7 @@ export PDK_ROOT=~/Desktop/uni/study/2B/298a/ttsetup/pdk // dont think i need thi
 ./tt/tt_tool.py --print-warnings
 
 test:
+source ../oss-cad-suite/environment
 cd test
 
 rtl test:
@@ -31,6 +32,3 @@ or
 ./tt/tt_tool.py --open-in-klayout
 or
 ./tt/tt_tool.py --create-png
-
-how much does this do and what doesn't it include?
-source ../oss-cad-suite/environment
