@@ -28,7 +28,7 @@ module pwm (
             end
             
             // PWM output
-            if (subsample_phase > current_sample) begin
+            if (subsample_phase < current_sample) begin
                 pwm_out <= 1'b1;
             end else begin
                 pwm_out <= 1'b0;
