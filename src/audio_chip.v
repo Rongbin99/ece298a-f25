@@ -17,7 +17,8 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
 );
     assign uio_oe = 8'b0;
 
-    wire  [7:0] bitstream;
+    wire  [6:0] bitstream_ch1;
+    wire  [6:0] bitstream_ch2;
     wire  [7:0] subsample_phase;
 
     wire [15:0] registers [1:0]; // other modules use this
@@ -26,8 +27,6 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
     // route between flattened and array-form registers
     assign registers[0] = registers_flat[15:0];
     assign registers[1] = registers_flat[31:16];
-
-    assign bitstream[7] = 1'b0;
 
     phase_counter counter (
         subsample_phase,
@@ -50,20 +49,21 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
         registers[0][11:0],
         rst_n,
         clk,
-        bitstream[6:0]
+        bitstream_ch1
     );  
 
     triangle triangle_gen (
         subsample_phase,
-        registers[0][11:0],
+        registers[1][11:0],
         clk,
         rst_n,
-        bitstream[6:0]
+        bitstream_ch2
     );
 
     pwm pwm_gen (
         subsample_phase,
-        bitstream,
+        bitstream_ch1,
+        bitstream_ch2,
         clk,
         rst_n,
         uo_out[7]

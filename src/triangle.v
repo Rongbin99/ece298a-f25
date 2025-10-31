@@ -8,11 +8,11 @@
 module triangle #(
     parameter ACC_BITS = 14
 ) (
-    input wire [7:0] subsample_phase,
+    input wire          [7:0] subsample_phase,
     input wire [ACC_BITS-3:0] freq_increment, // from freq register
-    input wire rst_n,
-    input wire clk,
-    output reg[6:0] out
+    input wire                rst_n,
+    input wire                clk,
+    output reg          [6:0] out
 );
 
     // internal accumulator based on freq_increment
