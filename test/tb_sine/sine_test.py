@@ -28,7 +28,7 @@ async def test_project(dut):
     dut._log.info("Start")
 
     # approx 7208960 Hz
-    clock = Clock(dut.clk, 139, unit="ns")
+    clock = Clock(dut.clk, 139, units="ns")
     cocotb.start_soon(clock.start())
 
     # Reset

@@ -43,7 +43,7 @@ async def play_a_tune(dut):
     dut._log.info("Start")
 
     # approx 7208960 Hz
-    clock = Clock(dut.clk, PERIOD_NS, unit="ns")
+    clock = Clock(dut.clk, PERIOD_NS, units="ns")
     cocotb.start_soon(clock.start())
 
     # Reset
