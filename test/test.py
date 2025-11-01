@@ -4,14 +4,46 @@
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
+from audio_util import *
 
+PERIOD_NS = 139
+
+async def write_reg(dut, value, addr, delay=5):
+    # setup phase 1 & MSB
+    dut.ui_in.value = (addr & 0xF) | (1 << 4) | (0 << 5)
+    dut.uio_in.value = value >> 8
+    await ClockCycles(dut.clk, delay)
+
+    # enable, writes MSB
+    dut.ui_in.value = (addr & 0xF) | (1 << 4) | (1 << 5)
+    await ClockCycles(dut.clk, delay)
+
+    # setup LSB
+    dut.uio_in.value = value & 0xFF
+    await ClockCycles(dut.clk, delay)
+
+    # phase 0, writes LSB
+    dut.ui_in.value = (addr & 0xF) | (0 << 4) | (1 << 5)
+    await ClockCycles(dut.clk, delay)
+
+    # disable, writes final value to reg
+    dut.ui_in.value = (addr & 0xF) | (0 << 4) | (0 << 5)
+    await ClockCycles(dut.clk, delay)
+
+    dut.uio_in.value = 0
+    dut.ui_in.value = 0
+
+    return delay * PERIOD_NS * 4 / 1e9
+
+def seconds_to_cycles(seconds):
+    return int(seconds * 1e9 / PERIOD_NS)
 
 @cocotb.test()
-async def test_project(dut):
+async def play_a_tune(dut):
     dut._log.info("Start")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
+    # approx 7208960 Hz
+    clock = Clock(dut.clk, PERIOD_NS, unit="ns")
     cocotb.start_soon(clock.start())
 
     # Reset
@@ -23,18 +55,12 @@ async def test_project(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
+    dut._log.info("Full integration test")
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+    delay_s = await write_reg(dut, tostep(69), 0)
+    delay_s += await write_reg(dut, tostep(69), 1)
+    await ClockCycles(dut.clk, seconds_to_cycles(0.01 - delay_s))
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
-
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
-
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    delay_s = await write_reg(dut, tostep(100), 0)
+    delay_s += await write_reg(dut, tostep(100), 1)
+    await ClockCycles(dut.clk, seconds_to_cycles(0.01 - delay_s))

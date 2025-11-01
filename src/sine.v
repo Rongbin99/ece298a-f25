@@ -87,7 +87,7 @@ module sine #(
                 end
             end else if (subsample_phase == 8) begin
                 out <= y + 7'd64;
-                accumulator <= accumulator + {2'b0,freq_increment};
+                accumulator <= accumulator + {2'b0, freq_increment};
             end
         end
     end

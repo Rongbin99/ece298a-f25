@@ -29,44 +29,44 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
     assign registers[1] = registers_flat[31:16];
 
     phase_counter counter (
-        subsample_phase,
-        clk,
-        rst_n
+        .subsample_phase(subsample_phase),
+        .clk(clk),
+        .rst_n(rst_n)
     );
 
     register_interface reg_block (
-        ui_in[5],
-        ui_in[4],
-        ui_in[3:0],
-        uio_in,
-        clk,
-        rst_n,
-        registers_flat
+        .enable(ui_in[5]),
+        .phase(ui_in[4]),
+        .address(ui_in[3:0]),
+        .reg_value(uio_in),
+        .clk(clk),
+        .rst_n(rst_n),
+        .registers_flat(registers_flat)
     );
 
     sine sine_gen (
-        subsample_phase,
-        registers[0][11:0],
-        rst_n,
-        clk,
-        bitstream_ch1
+        .subsample_phase(subsample_phase),
+        .freq_increment(registers[0][11:0]),
+        .rst_n(rst_n),
+        .clk(clk),
+        .out(bitstream_ch1)
     );  
 
     triangle triangle_gen (
-        subsample_phase,
-        registers[1][11:0],
-        clk,
-        rst_n,
-        bitstream_ch2
+        .subsample_phase(subsample_phase),
+        .freq_increment(registers[1][11:0]),
+        .rst_n(rst_n),
+        .clk(clk),
+        .out(bitstream_ch2)
     );
 
     pwm pwm_gen (
-        subsample_phase,
-        bitstream_ch1,
-        bitstream_ch2,
-        clk,
-        rst_n,
-        uo_out[7]
+        .subsample_phase(subsample_phase),
+        .bitstream_ch1(bitstream_ch1),
+        .bitstream_ch2(bitstream_ch2),
+        .clk(clk),
+        .rst_n(rst_n),
+        .pwm_out(uo_out[7])
     );
 
     assign uo_out[6:0] = 7'b0;

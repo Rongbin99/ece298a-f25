@@ -18,6 +18,9 @@ def calculate_step(freq_hz):
     sample_rate = 28160
     return round((freq_hz * (2 ** 14)) / sample_rate)
 
+# test reset
+# test
+
 @cocotb.test()
 async def test_project(dut):
     global subsample_phase
@@ -45,6 +48,6 @@ async def test_project(dut):
     assert dut.out.value == 64, f"Expected 64, got {dut.out.value.integer}"
     await inc_subsample_phase(dut, 254-7)
 
-    dut._log.info("Starting 1760 Hz tone")
+    dut._log.info("Starting 400 Hz tone")
     dut.freq_increment.value = calculate_step(400)
     await inc_subsample_phase(dut, 256*300)

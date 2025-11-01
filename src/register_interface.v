@@ -52,7 +52,7 @@ module register_interface #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (int i = 1; i < NUM_REGS; i = i + 1) begin
+            for (int i = 0; i < NUM_REGS; i = i + 1) begin
                 registers[i] <= 16'b0;
             end
             enable_prev <= 1'b0;
