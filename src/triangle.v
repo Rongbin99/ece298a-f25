@@ -8,7 +8,7 @@
 module triangle #(
     parameter ACC_BITS = 14
 ) (
-    input wire          [7:0] subsample_phase,
+    input wire          [9:0] subsample_phase,
     input wire [ACC_BITS-3:0] freq_increment, // from freq register
     input wire                rst_n,
     input wire                clk,

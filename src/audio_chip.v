@@ -19,7 +19,7 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
 
     wire  [6:0] bitstream_ch1;
     wire  [6:0] bitstream_ch2;
-    wire  [7:0] subsample_phase;
+    wire  [9:0] subsample_phase;
 
     wire [15:0] registers [1:0]; // other modules use this
     wire [31:0] registers_flat; // register interface outputs into this
@@ -61,7 +61,7 @@ module tt_um_rongbin99_happyredmapleleaf_audio_chip (
     );
 
     pwm pwm_gen (
-        .subsample_phase(subsample_phase),
+        .subsample_phase(subsample_phase[7:0]),
         .bitstream_ch1(bitstream_ch1),
         .bitstream_ch2(bitstream_ch2),
         .clk(clk),

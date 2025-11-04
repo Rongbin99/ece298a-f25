@@ -6,7 +6,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
 from audio_util import *
 
-PERIOD_NS = 139
+PERIOD_NS = 35
 
 async def write_reg(dut, value, addr, delay=5):
     # setup phase 1 & MSB
@@ -42,7 +42,7 @@ def seconds_to_cycles(seconds):
 async def play_a_tune(dut):
     dut._log.info("Start")
 
-    # approx 7208960 Hz
+    # approx 28835840 Hz
     clock = Clock(dut.clk, PERIOD_NS, units="ns")
     cocotb.start_soon(clock.start())
 

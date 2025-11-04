@@ -18,7 +18,7 @@
 module sine #(
     parameter ACC_BITS = 14
 ) (
-    input  wire [7:0] subsample_phase,
+    input  wire [9:0] subsample_phase,
     input  wire [ACC_BITS-3:0] freq_increment, // from freq register
     input  wire rst_n,
     input  wire clk,
@@ -60,7 +60,7 @@ module sine #(
             t <= 8'b0;
             accumulator <= {ACC_BITS{1'b0}};
         end else begin
-            if (subsample_phase == 255) begin
+            if (subsample_phase == 1023) begin
                 x <= X_INIT;
                 y <= 7'd0;
 
@@ -76,13 +76,13 @@ module sine #(
             end else if (subsample_phase < 8) begin
                 if (t[7] == 0) begin
                     // Rotate positive
-                    x <= x - (y >>> subsample_phase);
-                    y <= y + (x >>> subsample_phase);
+                    x <= x - (y >>> subsample_phase[2:0]);
+                    y <= y + (x >>> subsample_phase[2:0]);
                     t <= t - atan_table[subsample_phase[2:0]];
                 end else begin
                     // Rotate negative
-                    x <= x + (y >>> subsample_phase);
-                    y <= y - (x >>> subsample_phase);
+                    x <= x + (y >>> subsample_phase[2:0]);
+                    y <= y - (x >>> subsample_phase[2:0]);
                     t <= t + atan_table[subsample_phase[2:0]];
                 end
             end else if (subsample_phase == 8) begin
