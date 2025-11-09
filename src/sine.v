@@ -58,6 +58,7 @@ module sine #(
             x <= 7'b0;
             y <= 7'b0;
             t <= 8'b0;
+            out <= 7'd64;
             accumulator <= {ACC_BITS{1'b0}};
         end else begin
             if (subsample_phase == 1023) begin

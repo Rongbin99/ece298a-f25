@@ -57,10 +57,10 @@ async def play_a_tune(dut):
 
     dut._log.info("Full integration test")
 
-    delay_s = await write_reg(dut, tostep(69), 0)
-    delay_s += await write_reg(dut, tostep(69), 1)
+    delay_s = await write_reg(dut, tostep(60), 0)
+    delay_s += await write_reg(dut, tostep(60), 1)
     await ClockCycles(dut.clk, seconds_to_cycles(0.01 - delay_s))
 
-    delay_s = await write_reg(dut, tostep(100), 0)
-    delay_s += await write_reg(dut, tostep(100), 1)
+    delay_s = await write_reg(dut, tostep(80), 0)
+    delay_s += await write_reg(dut, tostep(80), 1)
     await ClockCycles(dut.clk, seconds_to_cycles(0.01 - delay_s))

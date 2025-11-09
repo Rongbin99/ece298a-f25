@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-// gate estimate: 250 ?
-
 `default_nettype none
 
 module register_interface #(
