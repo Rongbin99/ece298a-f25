@@ -13,16 +13,24 @@ module tb ();
   // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;
-  reg [9:0] subsample_phase;
-  reg [11:0] freq_increment;
-  wire [6:0] out;
+  wire [9:0] subsample_phase;
+  reg [6:0] bitstream_ch1;
+  reg [6:0] bitstream_ch2;
+  wire pwm_out;
 
-  triangle triangle_inst (
+  phase_counter phase_counter_inst (
       subsample_phase,
-      freq_increment,
-      rst_n,
       clk,
-      out
-  );  
+      rst_n
+  );
+
+  pwm pwm_inst (
+      subsample_phase[7:0],
+      bitstream_ch1,
+      bitstream_ch2,
+      clk,
+      rst_n,
+      pwm_out
+  );
   
 endmodule

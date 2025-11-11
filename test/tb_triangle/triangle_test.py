@@ -4,33 +4,31 @@ from cocotb.triggers import ClockCycles
 
 subsample_phase = 0
 
-## some generated tests for the triangle wave
-
 async def cycle_subsample_phase(dut, cycles=1):
-    """Advance subsample_phase through complete cycles (0-255)"""
+    """Advance subsample_phase through complete cycles (0-1023)"""
     global subsample_phase
     
-    for _ in range(cycles * 256):
+    for _ in range(cycles * 1024):
         dut.subsample_phase.value = subsample_phase
         await ClockCycles(dut.clk, 1)
-        subsample_phase = (subsample_phase + 1) % 256
+        subsample_phase = (subsample_phase + 1) % 1024
 
-async def wait_for_phase(dut, target_phase):
+async def wait_for_subsample_phase(dut, target_phase):
     """Wait until subsample_phase reaches target value"""
     global subsample_phase
     
     while subsample_phase != target_phase:
         dut.subsample_phase.value = subsample_phase
         await ClockCycles(dut.clk, 1)
-        subsample_phase = (subsample_phase + 1) % 256
+        subsample_phase = (subsample_phase + 1) % 1024
     
     # At target phase
     dut.subsample_phase.value = subsample_phase
     await ClockCycles(dut.clk, 1)
-    subsample_phase = (subsample_phase + 1) % 256
+    subsample_phase = (subsample_phase + 1) % 1024
 
 @cocotb.test()
-async def test_reset(dut):
+async def test_reset1(dut):
     """Test that reset properly initializes the output and accumulator"""
     dut._log.info("Testing reset functionality")
     
@@ -48,6 +46,34 @@ async def test_reset(dut):
     # Check that output is 0 after reset
     assert dut.out.value == 0, f"Expected 0 after reset, got {dut.out.value.integer}"
     dut._log.info("Reset test passed")
+
+@cocotb.test()
+async def test_reset2(dut):
+    """Test that reset properly initializes the output and accumulator"""
+    dut._log.info("Testing reset functionality")
+    
+    clock = Clock(dut.clk, 200, units="ns")
+    cocotb.start_soon(clock.start())
+    
+    # Apply reset
+    dut.subsample_phase.value = 0
+    dut.freq_increment.value = 256
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 20)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 1)
+    
+    # Check that output is 0 after reset
+    assert dut.out.value == 0, f"Expected 0 after reset, got {dut.out.value.integer}"
+    dut._log.info("Reset test passed")
+
+    await cycle_subsample_phase(dut, cycles=10)
+    assert dut.out.value == 40, f"Expected 40 after 10 cycles, got {dut.out.value.integer}"
+    await cycle_subsample_phase(dut, cycles=10)
+    assert dut.out.value == 80, f"Expected 80 after 20 cycles, got {dut.out.value.integer}"
+    await cycle_subsample_phase(dut, cycles=10)
+    assert dut.out.value == 120, f"Expected 120 after 30 cycles, got {dut.out.value.integer}"
+    dut._log.info("Cycle test passed")
 
 @cocotb.test()
 async def test_accumulator_increment(dut):
@@ -88,7 +114,7 @@ async def test_accumulator_increment(dut):
     
     # Move to phase 9 to see the new output based on incremented accumulator
     dut.subsample_phase.value = 9
-    await ClockCycles(dut.clk, 1)
+    await ClockCycles(dut.clk, 2)
     after_increment = dut.out.value.integer
     
     dut._log.info(f"After phase 8 increment: {after_increment}")
@@ -157,7 +183,7 @@ async def test_triangle_wave_shape(dut):
     # Track outputs over time
     outputs = []
     for _ in range(100):  # Sample 100 times
-        await wait_for_phase(dut, 8)  # Sample after each increment
+        await wait_for_subsample_phase(dut, 8)  # Sample after each increment
         outputs.append(dut.out.value.integer)
     
     dut._log.info(f"First 20 samples: {outputs[:20]}")
@@ -201,7 +227,7 @@ async def test_full_range(dut):
     max_val = 0
     
     for _ in range(500):  # Run 500 sample periods
-        await wait_for_phase(dut, 8)
+        await wait_for_subsample_phase(dut, 8)
         output = dut.out.value.integer
         min_val = min(min_val, output)
         max_val = max(max_val, output)
@@ -237,7 +263,7 @@ async def test_continuous_waveform(dut):
     max_jump = 0
     
     for _ in range(200):
-        await wait_for_phase(dut, 8)
+        await wait_for_subsample_phase(dut, 8)
         output = dut.out.value.integer
         jump = abs(output - prev_output)
         max_jump = max(max_jump, jump)
