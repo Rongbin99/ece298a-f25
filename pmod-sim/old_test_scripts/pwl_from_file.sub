@@ -1,0 +1,11 @@
+.subckt filesrc_v nplus nminus
+
+* single-channel filesource
+A1 %vd([nplus nminus]) filesrc
+
+.model filesrc filesource (file="input_waveform.txt"
++ amploffset=[0] amplscale=[1]
++ timeoffset=0 timescale=1
++ timerelative=false amplstep=false)
+
+.ends filesrc_v

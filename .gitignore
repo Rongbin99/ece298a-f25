@@ -13,3 +13,7 @@ test/**/tb.vcd
 
 out.txt
 tt/
+
+pmod-sim/**.lck
+
+.vscode/

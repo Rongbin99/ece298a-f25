@@ -19,12 +19,8 @@ module register_interface #(
     reg [15:0] registers [NUM_REGS-1:0];
     
     // flatten registers 2d array to output
-    genvar g;
-    generate
-        for (g = 0; g < NUM_REGS; g = g + 1) begin : flatten_regs
-            assign registers_flat[(g+1)*16-1:g*16] = registers[g];
-        end
-    endgenerate
+    assign registers_flat[15:0] = registers[0];
+    assign registers_flat[31:16] = registers[1];
 
     wire enable_sync;
     wire phase_sync;
@@ -50,9 +46,8 @@ module register_interface #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (int i = 0; i < NUM_REGS; i = i + 1) begin
-                registers[i] <= 16'b0;
-            end
+            registers[0] <= 16'b0;
+            registers[1] <= 16'b0;
             enable_prev <= 1'b0;
             phase_prev <= 1'b0;
             state <= 2'b0;

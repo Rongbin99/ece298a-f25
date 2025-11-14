@@ -18,6 +18,11 @@ cd test
 rtl test:
 make -B
 
+long test & dump pwm:
+make -B AUDIO=yes (will take tens of minutes for ~1s simulations)
+cd ../pmod-sim
+python filter_pwm.py ../test/pwm_edges.log ./freq_response.csv output.wav
+
 view waveforms:
 gtkwave tb.vcd
 
