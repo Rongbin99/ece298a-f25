@@ -65,22 +65,22 @@ async def play_a_tune(dut):
     write_data = []
     monitor = cocotb.start_soon(monitor_edge(dut.user_project.pwm_gen.pwm_out, write_data))
 
-    await write_reg(dut, tostep(76), 0) # e5
-    await write_reg(dut, tostep(52), 1) # e4 ~330
+    await write_reg(dut, tostep(76), 0) # e5 ~659 Hz
+    await write_reg(dut, tostep(52), 1) # e3 ~165 Hz
 
     for i in range(30):
         await Timer(0.01, unit="sec")
         dut._log.info(f"Waited {(i+1) * 0.01}s")
 
-    await write_reg(dut, tostep(72), 0) # c5
-    await write_reg(dut, tostep(56), 1) # g#3
+    await write_reg(dut, tostep(72), 0) # c5 ~523 Hz
+    await write_reg(dut, tostep(56), 1) # g#3 ~208 Hz
 
     for i in range(30):
         await Timer(0.01, unit="sec")
         dut._log.info(f"Waited {(i+1) * 0.01}s")
         
-    await write_reg(dut, tostep(69), 0) # a4 ~440
-    await write_reg(dut, tostep(57), 1) # a3 ~220
+    await write_reg(dut, tostep(69), 0) # a4 ~440 Hz
+    await write_reg(dut, tostep(57), 1) # a3 ~220 Hz
 
     for i in range(30):
         await Timer(0.01, unit="sec")
