@@ -78,3 +78,111 @@ async def play_a_tune(dut):
     with open("pwm_edges.log", "w") as f:
         for (time_ns, value) in write_data:
             f.write(f"{time_ns},{value}\n")
+
+@cocotb.test()
+async def single_sine_note(dut):
+    """Full integration test: single sine channel active."""
+
+    dut._log.info("Start single_sine_note")
+
+    # approx 28835840 Hz
+    clock = Clock(dut.clk, PERIOD_NS, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+
+    dut._log.info("Single sine channel integration test")
+    write_data = []
+    monitor = cocotb.start_soon(monitor_edge(dut.user_project.pwm_gen.pwm_out, write_data))
+
+    # Enable only the sine channel on register 0 (A4)
+    await write_reg(dut, tostep(69), 0)
+    await write_reg(dut, 0, 1)
+
+    await Timer(0.003, units="sec")
+
+    monitor.kill()
+    dut._log.info(f"Captured {len(write_data)} PWM edges")
+
+    # We expect at least some activity on the PWM output
+    assert len(write_data) > 0, "Expected PWM edges for single sine note"
+
+@cocotb.test()
+async def single_triangle_note(dut):
+    """Full integration test: single triangle channel active."""
+
+    dut._log.info("Start single_triangle_note")
+
+    # approx 28835840 Hz
+    clock = Clock(dut.clk, PERIOD_NS, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+
+    dut._log.info("Single triangle channel integration test")
+
+    write_data = []
+    monitor = cocotb.start_soon(monitor_edge(dut.user_project.pwm_gen.pwm_out, write_data))
+
+    # Enable only the triangle channel on register 1 (A3)
+    await write_reg(dut, 0, 0)
+    await write_reg(dut, tostep(57), 1)
+
+    await Timer(0.003, units="sec")
+
+    monitor.kill()
+    dut._log.info(f"Captured {len(write_data)} PWM edges")
+
+    # We expect at least some activity on the PWM output
+    assert len(write_data) > 0, "Expected PWM edges for single triangle note"
+
+@cocotb.test()
+async def sine_and_triangle_together(dut):
+    """Full integration test: sine and triangle channels active together."""
+
+    dut._log.info("Start sine_and_triangle_together")
+
+    # approx 28835840 Hz
+    clock = Clock(dut.clk, PERIOD_NS, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Reset
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+
+    dut._log.info("Sine + triangle integration test")
+
+    write_data = []
+    monitor = cocotb.start_soon(monitor_edge(dut.user_project.pwm_gen.pwm_out, write_data))
+
+    # Program both channels: sine A4 and triangle A3
+    await write_reg(dut, tostep(69), 0)
+    await write_reg(dut, tostep(57), 1)
+
+    await Timer(0.003, units="sec")
+
+    monitor.kill()
+    dut._log.info(f"Captured {len(write_data)} PWM edges")
+
+    # We expect PWM activity when both channels are active
+    assert len(write_data) > 0, "Expected PWM edges when sine and triangle notes are active together"
+    
