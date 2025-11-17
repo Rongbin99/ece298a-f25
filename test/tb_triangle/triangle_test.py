@@ -76,6 +76,39 @@ async def test_reset2(dut):
     dut._log.info("Cycle test passed")
 
 @cocotb.test()
+async def test_midrun_reset_clears_wave(dut):
+    """Reset while triangle is running forces output back to 0 and restarts ramp."""
+    global subsample_phase
+
+    clock = Clock(dut.clk, 10, units="ns")
+    cocotb.start_soon(clock.start())
+
+    # Start with a non-zero freq_increment and run for a while
+    subsample_phase = 0
+    dut.subsample_phase.value = 0
+    dut.freq_increment.value = 256
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+
+    await cycle_subsample_phase(dut, cycles=8)
+    pre_reset_out = dut.out.value.integer
+    assert pre_reset_out != 0, "Triangle output did not change before reset"
+
+    # Apply reset in the middle of operation
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 2)
+
+    assert dut.out.value == 0, \
+        f"Expected out=0 immediately after midrun reset, got {dut.out.value.integer}"
+
+    # Output should begin ramping again after more cycles
+    await cycle_subsample_phase(dut, cycles=4)
+    assert dut.out.value.integer > 0, "Triangle output did not restart after reset"
+
+@cocotb.test()
 async def test_accumulator_increment(dut):
     """Test that accumulator increments only at subsample_phase = 8"""
     global subsample_phase
@@ -161,6 +194,43 @@ async def test_frequency_control(dut):
     # With 4x freq_increment, the wave should progress ~4x as fast
     # So output should be significantly different
     dut._log.info(f"Frequency control test passed - different rates produce different outputs")
+
+@cocotb.test()
+async def test_max_freq_increment_overflow_behavior(dut):
+    """Use maximum freq_increment and verify output stays in 0..127 and toggles direction."""
+    global subsample_phase
+
+    clock = Clock(dut.clk, 10, units="ns")
+    cocotb.start_soon(clock.start())
+
+    subsample_phase = 0
+    dut.subsample_phase.value = 0
+    dut.freq_increment.value = (1 << (14 - 2)) - 1  # max ACC_BITS-2:0 field (for ACC_BITS=14)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+
+    min_val = 127
+    max_val = 0
+    ascending = 0
+    descending = 0
+
+    prev = dut.out.value.integer
+    for _ in range(200):
+        await wait_for_subsample_phase(dut, 8)
+        val = dut.out.value.integer
+        min_val = min(min_val, val)
+        max_val = max(max_val, val)
+        if val > prev:
+            ascending += 1
+        elif val < prev:
+            descending += 1
+        prev = val
+
+    assert 0 <= min_val <= 5, f"Min out of range with max freq_increment: {min_val}"
+    assert 120 <= max_val <= 127, f"Max out of range with max freq_increment: {max_val}"
+    assert ascending > 0 and descending > 0, \
+        "Expected both ascending and descending segments even at high increment"
 
 @cocotb.test()
 async def test_triangle_wave_shape(dut):

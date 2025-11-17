@@ -22,6 +22,28 @@ async def test_setup(dut):
     assert dut.pwm_out.value == 0, f"Expected 0, got {dut.pwm_out.value.integer}"
     dut._log.info("Reset test passed")
 
+@cocotb.test()
+async def test_reset_while_running(dut):
+    """phase_counter/pwm: reset in the middle of operation clears state and restarts from 0."""
+    await test_setup(dut)
+
+    # Let the design run for a while so counter and PWM are active
+    await ClockCycles(dut.clk, 500)
+    pre_reset_phase = dut.subsample_phase.value.integer
+    dut._log.info(f"Pre-reset phase: {pre_reset_phase}")
+    assert pre_reset_phase != 0, "Counter did not advance before reset"
+
+    # Assert reset while running
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+
+    # After reset both counter and PWM output should be cleared
+    assert dut.subsample_phase.value.integer == 0, \
+        f"Expected subsample_phase=0 after mid-run reset, got {dut.subsample_phase.value.integer}"
+    assert dut.pwm_out.value.integer == 0, \
+        f"Expected pwm_out=0 after mid-run reset, got {dut.pwm_out.value.integer}"
+
 async def wait_for_low8(dut, target: int):
     """Wait until subsample_phase[7:0] == target."""
     while (dut.subsample_phase.value.integer & 0xFF) != (target & 0xFF):
@@ -85,6 +107,40 @@ async def test_pwm_duty_matches_sample_sum(dut):
 
         expected = ch1 + ch2 # 7b + 7b -> [0..254] (max 8-bit value)
         assert highs == expected, f"Duty mismatch: expected {expected} highs, got {highs} (ch1={ch1}, ch2={ch2})"
+
+@cocotb.test()
+async def test_pwm_sample_sum_overflow_edge(dut):
+    """pwm: verify behavior when ch1+ch2 hits maximum 8-bit range and around wrap."""
+    await test_setup(dut)
+
+    # Use values that exercise the upper end of the adder range
+    # These intentionally rely on 7-bit inputs and 8-bit sum (0..254).
+    vectors = [
+        (127, 127),  # nominal max (254)
+        (127, 126),  # just below max
+        (100, 155 & 0x7F),  # larger raw sum, but ch2 truncated to 7 bits in RTL
+    ]
+
+    for ch1, ch2 in vectors:
+        dut._log.info(f"Overflow-edge test with ch1={ch1}, ch2={ch2}")
+        dut.bitstream_ch1.value = ch1
+        dut.bitstream_ch2.value = ch2
+        # move one cycle after this point so that wait_for_low8() to synchronize to the *next* subsample_phase == 0 edge.
+        await ClockCycles(dut.clk, 1)
+        # wait for the next low-8 == 0 edge, then give the design two extra cycles: one for the PWM to capture the new sample at phase 0, and one for pwm_out to begin reflecting that sample.
+        await wait_for_low8(dut, 0)
+        await ClockCycles(dut.clk, 2)
+
+        highs = 0
+        for _ in range(256):
+            await ReadOnly()
+            if dut.pwm_out.value.integer == 1:
+                highs += 1
+            await ClockCycles(dut.clk, 1)
+
+        expected = (ch1 + ch2) & 0xFF
+        assert highs == expected, \
+            f"Overflow-edge duty mismatch: expected {expected}, got {highs} (ch1={ch1}, ch2={ch2})"
 
 @cocotb.test()
 async def test_pwm_phase_threshold_behavior(dut):
