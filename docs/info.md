@@ -11,47 +11,58 @@ You can also include images in this folder and reference them in the markdown. E
 
 3-channel square wave sound chip with support for amplitude, frequency, and duty cycle updates per channel.
 
+## Requirements
+
+- Yosys OSS CAD suite:
+  https://github.com/YosysHQ/oss-cad-suite-build
+
 ### Block diagram
 ![Block diagram](./block_diagram_v1.png)
 
 ### Register map
-| Register    | Description                  |
-|-------------|------------------------------|
-| 0b0000      | Channel enable               |
-| 0b0001      | Trigger update*              |
-| 0b0010      | Ch1 freq                     |
-| 0b0011      | Ch2 freq                     |
-| 0b0100      | Ch3 freq                     |
-| 0b0101      | Amplitudes (3x 5-bit fields) |
-| 0b0110      | Duty cycles (3 5-bit fields) |
-| 0b0111-1111 | Reserved/unused              |
+| Register    | Description           |
+|-------------|-----------------------|
+| 0b0000      | freq_ch1* (sine)      |
+| 0b0001      | freq_ch2* (triangle)  |
+| 0b0010-1111 | Reserved/unused       |
 
-*Trigger update: Inputted register values are only applied on the falling edge of the LSB of this register.
-This ensures all changes apply at the same time - otherwise may cause audio glitches/delays, for instance when
-changing the pitch of two channels at the same time.
+*Least significant 12 bits of frequency registers are read.
+To calculate register values from frequency f in Hz, use the following formula:
+
+freq_chX = round((f * 2^14) / f_sample)
+
+where f_sample = 28160 Hz, the output sample rate.
 
 ## How to test
 
-play a tune!
+### System-Level Tests
 
-### Bus details
-
-TBD
+### Block-Level Tests
 
 ## External hardware
 
 Audio Pmod required: [store.tinytapeout.com/products/Audio-Pmod-p716541601]()
 
-## Pin assignments
+## Pinout
+Clock frequency: 28835840 Hz
+Reset: active low
+
 | # | Input                   | Output     | Bidirectional        |
 |---|-------------------------|------------|----------------------|
 | 0 | Register bus address[0] | -          | Register bus data[0] |
 | 1 | Register bus address[1] | -          | Register bus data[1] |
 | 2 | Register bus address[2] | -          | Register bus data[2] |
 | 3 | Register bus address[3] | -          | Register bus data[3] |
-| 4 | Transfer enable         | -          | Register bus data[4] |
-| 5 | Transfer phase**        | -          | Register bus data[5] |
+| 4 | Transfer phase          | -          | Register bus data[4] |
+| 5 | Transfer enable         | -          | Register bus data[5] |
 | 6 | -                       | -          | Register bus data[6] |
 | 7 | -                       | PDM output | Register bus data[7] |
 
-**Transfer phase: 0 if transferring lower/least significant 8 bits of 16 bit register, 1 if transferring higher/most significant 8 bits.  
+### Bus details
+
+To write to registers:
+0. Start with enable = 0
+1. Set address bits, most significant 8 bits of data, and phase to 1 for at least 2 clock cycles.
+2. Set enable to 1 for at least 2 cycles. When this edge is detected, the most significant 8 bits will be read.
+3. Set phase to 0 for at least 2 cycles. When this edge is detected, the least significant 8 bits will be read.
+4. Set enable to 0 for at least 2 cycles. When this edge is detected, the full register value will be written at the specified address.

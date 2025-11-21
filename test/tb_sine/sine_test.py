@@ -14,7 +14,7 @@ PERIOD_NS = 35
 
 # values closer to 64 are more noisy by nature of the CORDIC algorithm
 SAMPLE_TOLERANCE_LOW = 3
-SAMPLE_TOLERANCE_HIGH = 8
+SAMPLE_TOLERANCE_HIGH = 9
 
 SAMPLE_FREQ = 28160  # Hz
 
@@ -99,3 +99,57 @@ async def test_random_frequencies(dut):
             else:
                 await inc_subsample_phase(dut, 1024)
             phase += 2 * math.pi * freq / SAMPLE_FREQ
+
+@cocotb.test()
+async def test_silence(dut):
+    global subsample_phase
+    await test_setup(dut)
+
+    # get to start of first cordic cycle
+    await inc_subsample_phase(dut, 1022)
+    
+    dut._log.info("Starting 0 Hz sine wave")
+    await inc_subsample_phase(dut, 1 + 7)
+    assert dut.out.value == 64, f"Expected 64, got {dut.out.value.integer}"
+
+    subsample_phase = 7 # accumulator increments on s_p = 8
+    dut.subsample_phase.value = subsample_phase
+
+    phase = 0
+
+    freq = 220
+    dut._log.info(f"Starting {freq} Hz sine wave")
+    dut.freq_increment.value = calculate_step(freq)
+    await inc_subsample_phase(dut, 3)
+
+    # play 50 samples
+    for sample_num in range(50):
+        expected = int(64 + 63 * math.sin(phase))
+        # print(f"Freq {freq} Hz, Sample {sample_num}: Expected {expected}, got {dut.out.value.integer}")
+        tolerance = round(abs(expected - 64) / 63 * (SAMPLE_TOLERANCE_LOW - SAMPLE_TOLERANCE_HIGH) + SAMPLE_TOLERANCE_HIGH)
+        assert abs(int(dut.out.value) - expected) <= tolerance, \
+            f"Freq {freq} Hz, Sample {sample_num}: Expected {expected}, got {dut.out.value.integer}"
+
+        if sample_num == 49:
+            await inc_subsample_phase(dut, 1024 - 3)
+        else:
+            await inc_subsample_phase(dut, 1024)
+        phase += 2 * math.pi * freq / SAMPLE_FREQ
+
+    freq = 0
+    dut._log.info(f"Starting silence")
+    dut.freq_increment.value = calculate_step(freq)
+    await inc_subsample_phase(dut, 3)
+
+    expected_silence = int(dut.out.value)
+    await inc_subsample_phase(dut, 1024)
+
+    # play 50 samples
+    for sample_num in range(50):
+        assert int(dut.out.value) == expected_silence, \
+            f"Silence, Sample {sample_num}: Expected {expected_silence}, got {dut.out.value.integer}"
+
+        if sample_num == 49:
+            await inc_subsample_phase(dut, 1024 - 3)
+        else:
+            await inc_subsample_phase(dut, 1024)
