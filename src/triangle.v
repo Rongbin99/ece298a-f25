@@ -31,7 +31,7 @@ module triangle #(
             end
             
             // increment accumulator once per sample period (synced with PWM)
-            if (subsample_phase == 8'd8) begin
+            if (subsample_phase == 10'd8) begin
                 accumulator <= accumulator + {2'b0, freq_increment};
             end
         end
