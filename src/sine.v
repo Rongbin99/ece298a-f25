@@ -65,9 +65,23 @@ module sine #(
                 x <= X_INIT;
                 y <= 7'd0;
 
-                // TODO: explain this
-                // reassigning 0 to 511 (top 9 bits of acc)
-                // into 127 to -128 (input angle of cordic)
+                /*
+                The below logic reassigns the top 9 bits of the accumulator (0 to 511)
+                into 127 to -128 (input angle of cordic), 512 is 360 degrees.
+
+                Looking at the first 2 bits of acc gives us the quadrant.
+                case 00 - 0-127   - acc_slice 0-127   - Q1 - map to 0 to 127
+                case 01 - 128-255 - acc_slice 128-255 - Q2 - map to 127 to 0
+                case 10 - 256-383 - acc_slice 0-127   - Q3 - map to -1 to -128
+                case 11 - 384-511 - acc_slice 128-255 - Q3 - map to -128 to -1
+
+                acc_slice can be reinterpreted as a signed integer, where ~A = -(1+A)
+
+                case 00: trivial
+                case 01: acc_slice is from -128 to -1. ~acc_slice gives us 127 to 0
+                case 10: ~acc_slice gives -1 to -128
+                case 11: acc_slice is from -128 to -1. No need to invert
+                */
                 case (accumulator[ACC_BITS-1:ACC_BITS-2])
                     2'b11,
                     2'b00: t <= acc_slice;
