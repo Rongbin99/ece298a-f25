@@ -11,7 +11,7 @@ You can also include images in this folder and reference them in the markdown. E
 
 2-Channel Sine and Triangle Wave Sound Chip with 8-bit PWM Output.
 
-Two 16-bit registers, written through a parallel bus interface, to control the frequencies of channel 1 (sine) and channel 2 (triangle). Register values go to both `sine` and `triangle` wave modules, which uses (Direct Digital Synthesis (DDS))[https://en.wikipedia.org/wiki/Direct_digital_synthesis], to generate 7-bit digital samples at varying frequencies with a sample rate of 28160 Hz. The 7-bit values are added together to an 8-bit sample which is converted to a PWM signal. Each 8-bit sample is converted to four 112640 Hz PWM pulses. The base clock is thus 256x the PWM frequency at 28835840 Hz.
+Two 16-bit registers, written through a parallel bus interface, to control the frequencies of channel 1 (sine) and channel 2 (triangle). Register values go to both `sine` and `triangle` wave modules, which uses [Direct Digital Synthesis (DDS)](https://en.wikipedia.org/wiki/Direct_digital_synthesis), to generate 7-bit digital samples at varying frequencies with a sample rate of 28160 Hz. The 7-bit values are added together to an 8-bit sample which is converted to a PWM signal. Each 8-bit sample is converted to four 112640 Hz PWM pulses. The base clock is thus 256x the PWM frequency at 28835840 Hz (~28.84 MHz).
 
 Recommended generated frequency range: 220-1960 Hz
 
@@ -40,7 +40,7 @@ The architecture consists of several key components:
 |-------------|-----------------------|
 | 0b0000      | freq_ch1* (sine)      |
 | 0b0001      | freq_ch2* (triangle)  |
-| 0b0010-1111 | Reserved/unused       |
+| 0b0010-1111 | Reserved/Unused       |
 
 **only the least significant 12 bits of frequency registers are read.*
 
@@ -52,6 +52,7 @@ where f<sub>sample</sub> = 28160 Hz, the output sample rate.
 
 ## Pinout
 **Clock frequency**: 28835840 Hz (~28.8 MHz)
+
 **Reset**: active low
 
 | # | Input                   | Output     | Bidirectional        |
@@ -206,7 +207,6 @@ See: https://tinytapeout.com/guides/local-hardening/
 ## Project Duties & Acknowledgements
 
 Evan Li: 
-Implemented the following sub-blocks and tests:
 - `sine.v`
 - `register_interface.v`
 - `phase_counter.v`
@@ -219,7 +219,6 @@ Implemented the following sub-blocks and tests:
 - Integration tests - `test.py`
 
 Rongbin Gu: 
-Implemented the following sub-blocks and tests:
 - `triangle.v`
 - `sync.v`
 - `audio_chip.v`
