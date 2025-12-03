@@ -19,7 +19,7 @@ async def test_setup(dut):
     await ClockCycles(dut.clk, 1)
 
     # Check that output is 0 after reset
-    assert dut.pwm_out.value == 0, f"Expected 0, got {dut.pwm_out.value.integer}"
+    assert dut.pwm_out.value == 0, f"Expected 0, got {int(dut.pwm_out.value)}"
     dut._log.info("Reset test passed")
 
 @cocotb.test()
@@ -29,7 +29,7 @@ async def test_reset_while_running(dut):
 
     # Let the design run for a while so counter and PWM are active
     await ClockCycles(dut.clk, 500)
-    pre_reset_phase = dut.subsample_phase.value.integer
+    pre_reset_phase = int(dut.subsample_phase.value)
     dut._log.info(f"Pre-reset phase: {pre_reset_phase}")
     assert pre_reset_phase != 0, "Counter did not advance before reset"
 
@@ -39,14 +39,14 @@ async def test_reset_while_running(dut):
     dut.rst_n.value = 1
 
     # After reset both counter and PWM output should be cleared
-    assert dut.subsample_phase.value.integer == 0, \
-        f"Expected subsample_phase=0 after mid-run reset, got {dut.subsample_phase.value.integer}"
-    assert dut.pwm_out.value.integer == 0, \
-        f"Expected pwm_out=0 after mid-run reset, got {dut.pwm_out.value.integer}"
+    assert int(dut.subsample_phase.value) == 0, \
+        f"Expected subsample_phase=0 after mid-run reset, got {int(dut.subsample_phase.value)}"
+    assert int(dut.pwm_out.value) == 0, \
+        f"Expected pwm_out=0 after mid-run reset, got {int(dut.pwm_out.value)}"
 
 async def wait_for_low8(dut, target: int):
     """Wait until subsample_phase[7:0] == target."""
-    while (dut.subsample_phase.value.integer & 0xFF) != (target & 0xFF):
+    while (int(dut.subsample_phase.value) & 0xFF) != (target & 0xFF):
         await ClockCycles(dut.clk, 1)
     # aligned exactly at the matching phase edge
     return
@@ -57,20 +57,20 @@ async def test_phase_counter_counts_and_wraps(dut):
     await test_setup(dut)
 
     # After reset, should be 0
-    assert dut.subsample_phase.value.integer == 0, f"Expected subsample_phase=0 after reset, got {dut.subsample_phase.value.integer}"
+    assert int(dut.subsample_phase.value) == 0, f"Expected subsample_phase=0 after reset, got {int(dut.subsample_phase.value)}"
 
     # After N cycles, value should equal N (mod 1024)
     N = random.randint(0, 1023)
     dut._log.info(f"Testing phase counter with {N} cycles")
     await ClockCycles(dut.clk, N)
-    assert dut.subsample_phase.value.integer == (N % 1024), f"Expected {N % 1024}, got {dut.subsample_phase.value.integer}"
+    assert int(dut.subsample_phase.value) == (N % 1024), f"Expected {N % 1024}, got {int(dut.subsample_phase.value)}"
 
     # Advance to wrap to 0
-    current = dut.subsample_phase.value.integer
+    current = int(dut.subsample_phase.value)
     dut._log.info(f"Current phase: {current}")
     to_wrap = 1024 - current
     await ClockCycles(dut.clk, to_wrap)
-    assert dut.subsample_phase.value.integer == 0, f"Expected wrap to 0, got {dut.subsample_phase.value.integer}"
+    assert int(dut.subsample_phase.value) == 0, f"Expected wrap to 0, got {int(dut.subsample_phase.value)}"
 
 @cocotb.test()
 async def test_pwm_duty_matches_sample_sum(dut):
@@ -101,7 +101,7 @@ async def test_pwm_duty_matches_sample_sum(dut):
         highs = 0
         for _ in range(256): # 0-255
             await ReadOnly()
-            if dut.pwm_out.value.integer == 1:
+            if int(dut.pwm_out.value) == 1:
                 highs += 1
             await ClockCycles(dut.clk, 1)
 
@@ -134,7 +134,7 @@ async def test_pwm_sample_sum_overflow_edge(dut):
         highs = 0
         for _ in range(256):
             await ReadOnly()
-            if dut.pwm_out.value.integer == 1:
+            if int(dut.pwm_out.value) == 1:
                 highs += 1
             await ClockCycles(dut.clk, 1)
 
@@ -170,13 +170,13 @@ async def test_pwm_phase_threshold_behavior(dut):
         # pwm_out lags by one cycle: at phase X, pwm_out reflects the comparison from phase (X-1)
         for _ in range(253):
             await ReadOnly()
-            subsample_phase = dut.subsample_phase.value.integer & 0xFF
+            subsample_phase = int(dut.subsample_phase.value) & 0xFF
             
             # pwm_out reflects comparison from previous cycle
             prev_phase = (subsample_phase - 1) & 0xFF
             expected_out = 1 if prev_phase < sample else 0
             
-            assert dut.pwm_out.value.integer == expected_out, \
-                f"At phase {subsample_phase} with sample {sample}: expected pwm_out={expected_out}, got {dut.pwm_out.value.integer} (based on prev_phase={prev_phase})"
+            assert int(dut.pwm_out.value) == expected_out, \
+                f"At phase {subsample_phase} with sample {sample}: expected pwm_out={expected_out}, got {int(dut.pwm_out.value)} (based on prev_phase={prev_phase})"
             
             await ClockCycles(dut.clk, 1)
