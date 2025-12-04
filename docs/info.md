@@ -101,6 +101,9 @@ cd test/
 make -B
 ```
 
+Sample test waveform for all tests in test.py:
+![sample vcd](./testpy.png)
+
 **Gate-level test** (requires hardening first. see [Hardening section](#hardening--viewing)):
 
 ```
@@ -130,6 +133,11 @@ These are RTL tests only. There are four block-level test directories and a full
 - `test/tb_sine` - for sine waveform
 - `test/tb_triangle` - for triangle waveform
 - `test/test.py` - full integration test
+
+Sample test waveform for all tests in sine_test.py and triangle_test.py:
+![sample vcd](./sinepy.png)
+![sample vcd](./trianglepy.png)
+
 
 For each one, enter the directory and run `make -B`.
 
