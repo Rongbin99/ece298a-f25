@@ -210,7 +210,7 @@ See: https://tinytapeout.com/guides/local-hardening/
 
 ## External hardware
 
-**Audio Pmod required**: [Audio-Pmod-p716541601](store.tinytapeout.com/products/Audio-Pmod-p716541601)
+**Audio Pmod required**: [Audio-Pmod-p716541601](https://store.tinytapeout.com/products/Audio-Pmod-p716541601)
 
 ## Project Duties & Acknowledgements
 
